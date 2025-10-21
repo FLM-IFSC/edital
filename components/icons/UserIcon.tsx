@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const UserIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -18,4 +17,4 @@ const UserIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-export default UserIcon;
+export default React.memo(UserIcon);

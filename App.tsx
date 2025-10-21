@@ -5,57 +5,18 @@ import ChatComponent from './components/Chat';
 import { extractTextFromPdf } from './utils/pdfUtils';
 import { createDocumentChat } from './services/geminiService';
 import PaperclipIcon from './components/icons/PaperclipIcon';
-import BotIcon from './components/icons/BotIcon';
-
-const ApiKeyEntry: React.FC<{ onApiKeySubmit: (key: string) => void }> = ({ onApiKeySubmit }) => {
-  const [key, setKey] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (key.trim()) {
-      onApiKeySubmit(key.trim());
-    }
-  };
-
-  return (
-    <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
-      <div className="text-center p-8 bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
-        <BotIcon className="mx-auto h-16 w-16 text-blue-400 mb-4" />
-        <h1 className="text-2xl font-bold mb-2">Bem-vindo ao Chat com PDF</h1>
-        <p className="text-gray-400 mb-6">Para começar, por favor, insira sua chave da API do Google AI.</p>
-        <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
-          <input
-            type="password"
-            value={key}
-            onChange={(e) => setKey(e.target.value)}
-            placeholder="Sua Chave de API"
-            className="w-full bg-gray-700 border border-gray-600 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
-          />
-          <button
-            type="submit"
-            disabled={!key.trim()}
-            className="bg-blue-600 text-white rounded-lg py-3 font-semibold hover:bg-blue-500 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors"
-          >
-            Salvar e Continuar
-          </button>
-        </form>
-        <p className="text-xs text-gray-500 mt-4">
-          Sua chave é usada apenas no seu navegador e não é armazenada em nossos servidores.
-        </p>
-      </div>
-    </div>
-  );
-};
-
+import IFSCIcon from './components/icons/IFSCIcon';
 
 const App: React.FC = () => {
-  const [apiKey, setApiKey] = useState<string>('');
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [documentChat, setDocumentChat] = useState<Chat | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pdfViewerRef = useRef<PdfViewerRef>(null);
+  
+  // A chave da API agora é injetada via GitHub Actions
+  const apiKey = (window as any).GEMINI_API_KEY;
 
   const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -103,7 +64,19 @@ const App: React.FC = () => {
   };
   
   if (!apiKey) {
-    return <ApiKeyEntry onApiKeySubmit={setApiKey} />;
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
+        <div className="text-center p-8 bg-gray-800 rounded-lg shadow-xl max-w-md w-full">
+            <IFSCIcon className="mx-auto h-16 w-16 text-red-500 mb-4" />
+            <h1 className="text-2xl font-bold mb-2 text-red-400">Erro de Configuração</h1>
+            <p className="text-gray-400">
+                A chave da API do Gemini não foi encontrada. Se você é o desenvolvedor,
+                certifique-se de que a variável `GEMINI_API_KEY` foi configurada corretamente
+                nos secrets do repositório para a GitHub Action.
+            </p>
+        </div>
+      </div>
+    );
   }
 
   if (!pdfFile) {
@@ -114,7 +87,7 @@ const App: React.FC = () => {
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onClick={() => fileInputRef.current?.click()}
-                className="border-4 border-dashed border-gray-600 rounded-lg p-16 cursor-pointer hover:border-blue-500 hover:bg-gray-800 transition-all duration-300"
+                className="border-4 border-dashed border-gray-600 rounded-lg p-16 cursor-pointer hover:border-green-500 hover:bg-gray-800 transition-all duration-300"
             >
                 <input
                     type="file"
@@ -146,4 +119,4 @@ const App: React.FC = () => {
   );
 };
 
-export default App;
+export default React.memo(App);

@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const BotIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -19,4 +18,4 @@ const BotIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-export default BotIcon;
+export default React.memo(BotIcon);

@@ -1,0 +1,48 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Allow this job to clone the repo and create a page deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout your repository using git
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Prepare Artifact
+        run: |
+          mkdir dist
+          # Copy all top-level files and directories
+          cp index.html index.tsx metadata.json types.ts dist/
+          cp -r components services utils dist/
+          # Create the key file using the repository secret
+          echo "window.GEMINI_API_KEY = '${{ secrets.GEMINI_API_KEY }}';" > dist/key.js
+          # Inject the script tag into the HTML file
+          sed -i 's|</body>|<script src="key.js"></script></body>|' dist/index.html
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

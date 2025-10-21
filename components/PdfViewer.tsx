@@ -43,13 +43,13 @@ const PdfViewer = forwardRef<PdfViewerRef, PdfViewerProps>(({ file }, ref) => {
         </Document>
       </div>
       <div className="flex-shrink-0 bg-gray-900/50 backdrop-blur-sm p-2 flex items-center justify-center space-x-4 text-white">
-        <button onClick={goToPrevPage} disabled={pageNumber <= 1} className="px-3 py-1 bg-blue-600 rounded disabled:bg-gray-500 disabled:cursor-not-allowed hover:bg-blue-500 transition-colors">
+        <button onClick={goToPrevPage} disabled={pageNumber <= 1} className="px-3 py-1 bg-green-600 rounded disabled:bg-gray-500 disabled:cursor-not-allowed hover:bg-green-500 transition-colors">
           Anterior
         </button>
         <span>
           Página {pageNumber} de {numPages}
         </span>
-        <button onClick={goToNextPage} disabled={pageNumber >= (numPages || 0)} className="px-3 py-1 bg-blue-600 rounded disabled:bg-gray-500 disabled:cursor-not-allowed hover:bg-blue-500 transition-colors">
+        <button onClick={goToNextPage} disabled={pageNumber >= (numPages || 0)} className="px-3 py-1 bg-green-600 rounded disabled:bg-gray-500 disabled:cursor-not-allowed hover:bg-green-500 transition-colors">
           Próxima
         </button>
       </div>
@@ -57,4 +57,4 @@ const PdfViewer = forwardRef<PdfViewerRef, PdfViewerProps>(({ file }, ref) => {
   );
 });
 
-export default PdfViewer;
+export default React.memo(PdfViewer);

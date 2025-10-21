@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const SendIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -14,4 +13,4 @@ const SendIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-export default SendIcon;
+export default React.memo(SendIcon);

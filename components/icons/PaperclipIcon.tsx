@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 const PaperclipIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -16,4 +15,4 @@ const PaperclipIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-export default PaperclipIcon;
+export default React.memo(PaperclipIcon);

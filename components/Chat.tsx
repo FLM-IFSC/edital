@@ -4,6 +4,7 @@ import { ChatMessage } from '../types';
 import BotIcon from './icons/BotIcon';
 import UserIcon from './icons/UserIcon';
 import SendIcon from './icons/SendIcon';
+import IFSCIcon from './icons/IFSCIcon';
 
 interface ChatProps {
   documentChat: GeminiChat | null;
@@ -83,7 +84,7 @@ const Chat: React.FC<ChatProps> = ({ documentChat, onCitationClick }) => {
           <button
             key={index}
             onClick={() => onCitationClick(pageNum)}
-            className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-1 px-2 rounded-md transition-colors mx-1 text-sm"
+            className="bg-green-600 hover:bg-green-500 text-white font-bold py-1 px-2 rounded-md transition-colors mx-1 text-sm"
           >
             Página {pageNum}
           </button>
@@ -95,14 +96,14 @@ const Chat: React.FC<ChatProps> = ({ documentChat, onCitationClick }) => {
 
   return (
     <div className="flex flex-col h-full bg-gray-900 border-l-2 border-gray-700">
-      <div className="p-4 border-b-2 border-gray-700 flex items-center space-x-2">
-         <BotIcon className="text-blue-400 h-8 w-8" />
-         <h2 className="text-xl font-bold">Gemini</h2>
+      <div className="p-4 border-b-2 border-gray-700 flex items-center space-x-3">
+         <IFSCIcon className="text-green-500 h-8 w-8" />
+         <h2 className="text-xl font-bold">ED<span className="text-green-500">i</span>T<span className="text-green-500">a</span>L</h2>
       </div>
       <div className="flex-grow p-4 overflow-y-auto space-y-6">
         {messages.map((message) => (
           <div key={message.id} className={`flex items-start space-x-3 ${message.role === 'user' ? 'justify-end' : ''}`}>
-            {message.role === 'bot' && <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center"><BotIcon className="w-5 h-5 text-white"/></div>}
+            {message.role === 'bot' && <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-600 flex items-center justify-center"><BotIcon className="w-5 h-5 text-white"/></div>}
             <div className={`p-3 rounded-lg max-w-lg ${message.role === 'user' ? 'bg-gray-700 text-white rounded-br-none' : 'bg-gray-800 text-gray-300 rounded-bl-none'}`}>
               <div className="prose prose-invert max-w-none prose-p:my-2">
                  {renderMessageContent(message.content)}
@@ -121,10 +122,10 @@ const Chat: React.FC<ChatProps> = ({ documentChat, onCitationClick }) => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={isLoading ? 'Aguardando resposta...' : 'Digite um comando aqui'}
-            className="flex-grow bg-gray-800 border border-gray-600 rounded-full py-3 px-5 focus:outline-none focus:ring-2 focus:ring-blue-500 text-white disabled:opacity-50"
+            className="flex-grow bg-gray-800 border border-gray-600 rounded-full py-3 px-5 focus:outline-none focus:ring-2 focus:ring-green-500 text-white disabled:opacity-50"
             disabled={isLoading || !documentChat}
           />
-          <button type="submit" disabled={isLoading || !input.trim()} className="bg-blue-600 text-white rounded-full p-3 hover:bg-blue-500 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors">
+          <button type="submit" disabled={isLoading || !input.trim()} className="bg-green-600 text-white rounded-full p-3 hover:bg-green-500 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors">
             <SendIcon className="w-6 h-6"/>
           </button>
         </form>
@@ -134,4 +135,4 @@ const Chat: React.FC<ChatProps> = ({ documentChat, onCitationClick }) => {
   );
 };
 
-export default Chat;
+export default React.memo(Chat);
