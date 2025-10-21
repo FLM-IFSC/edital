@@ -6,7 +6,7 @@ on:
       - main
   workflow_dispatch:
 
-# Allow this job to clone the repo and create a page deployment
+# Permite que este trabalho clone o repositório e crie uma implantação de página
 permissions:
   contents: read
   pages: write
@@ -22,20 +22,15 @@ jobs:
       - name: Checkout your repository using git
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
       - name: Prepare Artifact
         run: |
           mkdir dist
-          # Copy all top-level files and directories
+          # Copia todos os arquivos e diretórios de nível superior
           cp index.html index.tsx metadata.json types.ts dist/
           cp -r components services utils dist/
-          # Create the key file using the repository secret
+          # Cria o arquivo de chave usando o secret do repositório
           echo "window.GEMINI_API_KEY = '${{ secrets.GEMINI_API_KEY }}';" > dist/key.js
-          # Inject the script tag into the HTML file
+          # Injeta a tag de script no arquivo HTML
           sed -i 's|</body>|<script src="key.js"></script></body>|' dist/index.html
 
       - name: Upload artifact

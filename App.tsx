@@ -2,20 +2,21 @@ import React, { useState, useCallback, useRef } from 'react';
 import { Chat } from '@google/genai';
 import PdfViewer, { PdfViewerRef } from './components/PdfViewer';
 import ChatComponent from './components/Chat';
-import { extractTextFromPdf } from './utils/pdfUtils';
-import { createDocumentChat } from './services/geminiService';
+import { createDocumentChat, performOcrOnPdf } from './services/geminiService';
 import PaperclipIcon from './components/icons/PaperclipIcon';
 import IFSCIcon from './components/icons/IFSCIcon';
+import SpinnerIcon from './components/icons/SpinnerIcon';
 
 const App: React.FC = () => {
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [documentChat, setDocumentChat] = useState<Chat | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pdfViewerRef = useRef<PdfViewerRef>(null);
   
-  // A chave da API agora é injetada via GitHub Actions
+  // A chave da API é injetada via GitHub Actions e fica disponível no objeto window
   const apiKey = (window as any).GEMINI_API_KEY;
 
   const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,17 +24,29 @@ const App: React.FC = () => {
     if (file && file.type === 'application/pdf') {
       setIsLoading(true);
       setError(null);
-      setPdfFile(file);
+      setPdfFile(null);
+      setDocumentChat(null);
+
       try {
-        const text = await extractTextFromPdf(file);
+        setLoadingMessage('Analisando documento com IA para extrair o texto... Isso pode levar um momento.');
+        const text = await performOcrOnPdf(file, apiKey);
+
+        if (!text?.trim()) {
+            throw new Error("Não foi possível extrair nenhum texto do documento com a IA. O arquivo pode estar corrompido ou ser muito complexo.");
+        }
+        
+        setLoadingMessage('Preparando o assistente de chat...');
         const chat = createDocumentChat(text, apiKey);
         setDocumentChat(chat);
+        setPdfFile(file); // Define o arquivo apenas em caso de sucesso total
+
       } catch (err) {
         setError((err as Error).message || 'Falha ao processar o PDF.');
         setPdfFile(null);
         setDocumentChat(null);
       } finally {
         setIsLoading(false);
+        setLoadingMessage('');
       }
     } else {
         setError("Por favor, selecione um arquivo PDF válido.");
@@ -100,7 +113,12 @@ const App: React.FC = () => {
                 <h2 className="text-2xl font-bold mb-2">Envie seu PDF</h2>
                 <p className="text-gray-400">Arraste e solte ou clique para selecionar um arquivo</p>
             </div>
-            {isLoading && <p className="mt-4 text-lg animate-pulse">Processando Documento...</p>}
+             {isLoading && (
+                <div className="mt-4 flex items-center justify-center text-lg text-red-500">
+                    <SpinnerIcon className="animate-spin h-5 w-5 mr-3" />
+                    <span>{loadingMessage}</span>
+                </div>
+            )}
             {error && <p className="mt-4 text-red-500">{error}</p>}
         </div>
       </div>

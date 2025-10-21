@@ -8,7 +8,8 @@ export async function extractTextFromPdf(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     fileReader.onload = async (event) => {
       if (!event.target?.result) {
-        return reject(new Error("Falha ao ler o arquivo."));
+        // Resolve with empty string to allow fallback to OCR
+        return resolve("");
       }
       
       const typedArray = new Uint8Array(event.target.result as ArrayBuffer);
@@ -35,17 +36,16 @@ export async function extractTextFromPdf(file: File): Promise<string> {
         
         resolve(fullText);
       } catch (error) {
-        console.error("Error processing PDF:", error);
-        if (error instanceof Error && error.name === 'MissingPDF') {
-             reject(new Error("O arquivo parece estar corrompido ou não é um PDF válido."));
-        } else {
-             reject(new Error("Não foi possível extrair o texto do PDF. O arquivo pode estar protegido ou usar um formato não suportado."));
-        }
+        console.error("Error processing PDF with pdf.js:", error);
+        // Instead of rejecting, resolve with an empty string to allow fallback to OCR.
+        resolve("");
       }
     };
     
     fileReader.onerror = (error) => {
-      reject(error);
+      console.error("FileReader error:", error);
+      // Resolve with an empty string on file reader error as well.
+      resolve("");
     };
 
     fileReader.readAsArrayBuffer(file);

@@ -11,10 +11,17 @@ interface ChatProps {
   onCitationClick: (page: number) => void;
 }
 
+const suggestedQuestions = [
+    "Qual o prazo de inscrição?",
+    "Quais são os pré-requisitos?",
+    "Faça um resumo do edital.",
+];
+
 const Chat: React.FC<ChatProps> = ({ documentChat, onCitationClick }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const scrollToBottom = () => {
@@ -24,34 +31,37 @@ const Chat: React.FC<ChatProps> = ({ documentChat, onCitationClick }) => {
   useEffect(scrollToBottom, [messages]);
   
   useEffect(() => {
-    setMessages([
-      {
-        id: 'initial-bot-message',
-        role: 'bot',
-        content: 'Olá! Estou pronto para responder perguntas sobre o documento que você enviou.'
-      }
-    ]);
+    if (documentChat) {
+      setMessages([
+        {
+          id: 'initial-bot-message',
+          role: 'bot',
+          content: 'Olá! Estou pronto para responder perguntas sobre o documento que você enviou.'
+        }
+      ]);
+      setShowSuggestions(true);
+    }
   }, [documentChat]);
 
-  const handleSendMessage = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || !documentChat || isLoading) return;
+  const submitQuery = useCallback(async (query: string) => {
+    if (!query.trim() || !documentChat || isLoading) return;
+
+    setShowSuggestions(false);
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       role: 'user',
-      content: input,
+      content: query,
     };
     
     setMessages(prev => [...prev, userMessage]);
-    setInput('');
     setIsLoading(true);
 
     const botMessageId = `bot-${Date.now()}`;
     setMessages(prev => [...prev, { id: botMessageId, role: 'bot', content: '' }]);
 
     try {
-      const result = await documentChat.sendMessageStream({ message: input });
+      const result = await documentChat.sendMessageStream({ message: query });
       let currentText = '';
       for await (const chunk of result) {
         currentText += chunk.text;
@@ -71,7 +81,17 @@ const Chat: React.FC<ChatProps> = ({ documentChat, onCitationClick }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [input, documentChat, isLoading]);
+  }, [documentChat, isLoading]);
+  
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    submitQuery(input);
+    setInput('');
+  }
+
+  const handleSuggestionClick = (question: string) => {
+    submitQuery(question);
+  }
 
   const renderMessageContent = (content: string) => {
     const citationRegex = /\[\s*Página\s*(\d+)\s*\]/g;
@@ -113,10 +133,23 @@ const Chat: React.FC<ChatProps> = ({ documentChat, onCitationClick }) => {
             {message.role === 'user' && <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center"><UserIcon className="w-5 h-5 text-white"/></div>}
           </div>
         ))}
+        {showSuggestions && (
+            <div className="flex justify-start flex-wrap gap-2 pt-4 pl-12">
+                {suggestedQuestions.map((q) => (
+                    <button
+                        key={q}
+                        onClick={() => handleSuggestionClick(q)}
+                        className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-3 rounded-lg transition-colors text-sm"
+                    >
+                        {q}
+                    </button>
+                ))}
+            </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
       <div className="p-4 border-t-2 border-gray-700">
-        <form onSubmit={handleSendMessage} className="flex items-center space-x-3">
+        <form onSubmit={handleFormSubmit} className="flex items-center space-x-3">
           <input
             type="text"
             value={input}

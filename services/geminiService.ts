@@ -1,9 +1,44 @@
-import { GoogleGenAI, Chat } from "@google/genai";
+import { GoogleGenAI, Chat, Part } from "@google/genai";
+
+// Helper function to convert File to a Gemini API Part
+async function fileToGenerativePart(file: File): Promise<Part> {
+    const base64EncodedDataPromise = new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+        reader.readAsDataURL(file);
+    });
+    return {
+        inlineData: {
+            data: await base64EncodedDataPromise,
+            mimeType: file.type,
+        },
+    };
+}
+
+
+export async function performOcrOnPdf(file: File, apiKey: string): Promise<string> {
+    const ai = new GoogleGenAI({ apiKey });
+    const pdfPart = await fileToGenerativePart(file);
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro',
+            contents: {
+                parts: [
+                    pdfPart,
+                    { text: "Você é um especialista em OCR. Extraia todo o texto deste documento PDF, página por página. Mantenha a formatação original o máximo possível. Para cada página, comece com o marcador '--- Página X ---', onde X é o número da página. Se uma página estiver em branco, indique isso. O documento está em português do Brasil." }
+                ]
+            }
+        });
+        return response.text;
+    } catch (e) {
+        console.error("Gemini OCR Error:", e);
+        throw new Error("A IA não conseguiu processar o documento. Pode ser muito complexo ou estar corrompido.");
+    }
+}
+
 
 export function createDocumentChat(documentText: string, apiKey: string): Chat {
-    if (!apiKey) {
-        throw new Error("A chave da API não foi fornecida.");
-    }
     const ai = new GoogleGenAI({ apiKey });
     
     const chat = ai.chats.create({
