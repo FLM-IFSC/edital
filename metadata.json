@@ -1,0 +1,5 @@
+{
+  "name": "IFSC: Candidato pergunta ao Edital",
+  "description": "Uma aplicação de chat interativa que permite aos usuários enviar um documento PDF e fazer perguntas sobre seu conteúdo. O chat, com tecnologia de IA, fornece respostas com citações diretas do documento de origem.",
+  "requestFramePermissions": []
+}
